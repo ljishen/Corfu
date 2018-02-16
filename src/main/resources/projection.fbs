@@ -1,0 +1,19 @@
+namespace edu.ucsc.soe.srl;
+
+table Extent {
+  from:ulong;
+  to:ulong;
+  replicas:[string];
+}
+
+table Range {
+  from:ulong;
+  to:ulong;
+  extent:[Extent];
+}
+
+table Projection {
+  ranges:[Range];
+}
+
+root_type Projection;
