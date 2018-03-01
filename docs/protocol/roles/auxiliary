@@ -1,0 +1,61 @@
+-------------------------------------------------------------------
+
+- HashMap<ulong, Projection> map, initially empty.
+Keep the map from epoch to proj.
+
+- List<Inventory> invs
+A list of available devices associated with free ranges.
+
+===================================================================
+Functions
+===================================================================
+
+Operation onDiff(p) {
+    return diff(p, map.lastValue())
+}
+
+
+Operation onPublish(new_seq_addr) {
+    Projection p = copy(map.lastValue())
+    p.sequencer = new_seq_addr
+    map.put(map.lastKey() + 1, p)
+    return p.moffset
+}
+
+
+Operation onReport(offset, replica_idx) {
+    Projection p = copy(map.lastValue())
+    range = p.rangeOf(offset)
+
+    new_range = copy(range)
+
+    // Slice the projection at the faulty point
+    range.to = offset - 1
+
+    extent = p.extentOf(offset)
+    extent.remove(replica_idx)
+
+    // Add a new range with a free replica
+    new_range.from = offset
+    free_inv = popFreeInv(range / len(range.extents))
+    extent.add()
+}
+
+
+Operation popFreeInv(len) {
+    for (Inventory inv : invs)
+        available_len = inv.to - inv.from
+        if (available_len >= len)
+            if (available_len == len)
+                invs.remove(inv)
+                return inv
+            else
+                free_inv = copy(inv)
+                free_inv.to = free_inv.from + len - 1
+                inv.from = inv.from + len
+                return free_inv
+
+
+}
+
+===================================================================

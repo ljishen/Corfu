@@ -32,11 +32,14 @@ root_type Projection;
 ===================================================================
 
 
+
+
 ===================================================================
 Functions
 ===================================================================
 
 Operation rangeOf(offset)
+
 
 // By default, the mapping function from the ESP logical addr (ela)
 // to the extent within the corresponding range is round-robin.
@@ -46,11 +49,13 @@ Operation extentOf(offset) {
     return range.extents[idx]
 }
 
+
 // The first replica in the extent is the primary
 Operation primaryOf(offset) {
     extent = extentOf(offset)
     return extent.replicas[0]
 }
+
 
 // (Offload) Translate the ESP logical addr (ela)
 // to ESP physical addr (epa).

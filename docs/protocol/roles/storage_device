@@ -1,0 +1,53 @@
+-------------------------------------------------------------------
+
+- Projection p, initially empty but not NULL.
+
+- HashMap<ulong, <ulong, bool>> map
+Keep the map from ela to <epa, isDeleted>.
+
+- ulong end_of_cleaned, initially -1.
+The watermark before which no unwritten addresses exist.
+
+===================================================================
+Functions
+===================================================================
+
+// Call this function when starts up
+Operation updateProj() {
+    send diff(p) to config.auxiliary_addr
+        on receive <diff>
+            if (diff != NULL)
+                p.apply(diff)
+}
+
+
+Operation onRead(offset, epoch) {
+    while (epoch != p.epoch) {
+        if (epoch < p.epoch)
+            return <err_sealed, diff(p)>
+
+        updateProj()
+    }
+
+    if (map.contains(offset))
+        if (map.get(offset).isDeleted)
+            return <err_deleted, NULL>
+    else
+        if (offset <= end_of_cleaned)
+            return <err_deleted, NULL>
+        else
+            return <err_unwritten, NULL>
+
+    addr = map.get(offset).epa
+    return <-1, read(addr)>
+}
+
+
+Operation diff(p) {
+    if (p == self.p)
+        return NULL
+
+    return diff(p, self.p)
+}
+
+===================================================================

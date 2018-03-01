@@ -1,8 +1,10 @@
+-------------------------------------------------------------------
+
+- ulong tkn, initially 0.
+
 ===================================================================
 Functions
 ===================================================================
-
-ulong tkn, initially 0.
 
 Operation init() {
     // An atomic call to publish the host_network_addr as the new sequencer, and return the moffset in the latest projection
@@ -15,3 +17,5 @@ Operation init() {
 Operation synchronized getToken() {
     return tkn++
 }
+
+===================================================================

@@ -1,0 +1,92 @@
+-------------------------------------------------------------------
+
+- Projection p, initially empty but not NULL.
+
+- ulong c_offset, initially -1.
+The maximal known position that has been written.
+Used as the starting point when the sequencer is not available.
+
+===================================================================
+Functions
+===================================================================
+
+// Call this function when starts up
+Operation updateProj() {
+    send diff(p) to config.auxiliary_addr
+        on receive <diff>
+            if (diff != NULL)
+                p.apply(diff)
+}
+
+
+Operation read(offset) {
+    while (TRUE) {
+        serv = p.primaryOf(offset)
+        send read(serv, offset, p.epoch)
+            on timeout
+                updateProj()
+            on receive <errno, data>
+          if (errno == err_sealed)
+              // update local p by applying projection diff
+              p.apply(data)
+          else if (errno == err_deleted or err_unwritten)
+              return errno
+          else if (error == -1)
+              return data
+    }
+}
+
+
+Operation append(data) {
+    seq_addr = NULL
+
+    while (TRUE) {
+        offset = -1
+        while (seq_addr != p.sequencer) {
+            seq_addr = p.sequencer
+            offset = getToken(seq_addr)
+                on timeout
+                    updateProj()
+        }
+
+        if (offset != -1)
+            c_offset = offset
+        else
+            c_offset = max(p.moffset, c_offset + 1)
+
+        serv = p.primaryOf(c_offset)
+        send append(serv, c_offset, data, p.epoch)
+            on timeout
+                updateProj()
+            on receive <errno, data>
+                if (errno == err_sealed)
+                    // update local p by applying projection diff
+                    p.apply(data)
+                else if (errno == err_deleted or errno == err_written)
+                    // go and retry
+                else if (error == -1)
+                    return c_offset
+    }
+}
+
+
+// @param type:
+//   - prefix: trim from the offset all through the head of log.
+//   - offset: trim just the offset addr alone.
+Operation trim(offset, type) {
+    while (TRUE) {
+        serv = p.primaryOf(offset)
+        send trim(serv, offset, type, p.epoch)
+            on timeout
+                updateProj()
+            on receive <errno, data>
+                if (errno == err_sealed)
+                    // update local p by applying projection diff
+                    p.apply(data)
+                else
+                    // errno could be err_deleted, err_unwritten or -1
+                    return errno
+    }
+}
+
+===================================================================
