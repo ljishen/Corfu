@@ -1,0 +1,64 @@
+===================================================================
+Data Structure
+===================================================================
+
+table Extent {
+  from:ulong;
+  to:ulong;
+  replicas:[Replica];
+}
+
+table Replica {
+  from:ulong;
+  to:ulong;
+  addr:string;     // the network addr of this storage device
+}
+
+table Range {
+  from:ulong;
+  to:ulong;
+  extents:[Extent];
+}
+
+table Projection {
+  ranges:[Range];
+  epoch: ulong;
+  sequencer:string;  // the network addr of sequencer
+  moffset: ulong;    // the maximal position has been written
+}
+
+root_type Projection;
+
+===================================================================
+
+
+===================================================================
+Functions
+===================================================================
+
+Operation rangeOf(offset)
+
+// By default, the mapping function from the ESP logical addr (ela)
+// to the extent within the corresponding range is round-robin.
+Operation extentOf(offset) {
+    range = rangeOf(offset)
+    idx = (offset - range.from) % len(range.extents)
+    return range.extents[idx]
+}
+
+// The first replica in the extent is the primary
+Operation primaryOf(offset) {
+    extent = extentOf(offset)
+    return extent.replicas[0]
+}
+
+// (Offload) Translate the ESP logical addr (ela)
+// to ESP physical addr (epa).
+Operation parse(offset) {
+    range = rangeOf(offset)
+    extents = range.extents
+    return (offset - range.from) / len(range.extents) +
+                extentOf(offset).from
+}
+
+===================================================================
