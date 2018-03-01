@@ -1,4 +1,4 @@
-namespace edu.ucsc.soe.srl;
+namespace edu.ucsc.soe.sys;
 
 table Extent {
   from:ulong;
@@ -13,7 +13,9 @@ table Range {
 }
 
 table Projection {
+  epoch: ulong;
   ranges:[Range];
+  sequencer:string;  // IP of sequencer
 }
 
 root_type Projection;
