@@ -49,6 +49,47 @@ Operation onRead(offset, epoch) {
 }
 
 
+Operation onAppend(offset, data, epoch) {
+    while (epoch != p.epoch) {
+        if (epoch < p.epoch)
+            return <err_sealed, diff(p)>
+
+        updateProj()
+    }
+
+    if (map.containts(offset))
+        if (map.get(offset).isDeleted)
+            return <err_deleted, NULL>
+        else
+            return <err_written, NULL>
+    else if (offset <= end_of_cleaned)
+          return <err_deleted, NULL>
+
+    // Hold place for this offset
+    map.put(offset, NULL)
+
+    extents = p.extentsOf(offset)
+    if (extents[0] == host_network_addr)
+        for (extents[1:])
+            async send onAppend(offset, data, epoch)
+            on timeout
+                report
+
+    addr = parse(offset)
+}
+
+
+Operation onTrim(offset, type, epoch) {
+
+}
+
+
+// (Offload)
+Operation ping() {
+
+}
+
+
 Operation diff(p) {
     if (p == self.p)
         return NULL

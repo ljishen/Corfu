@@ -2,10 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="472aff55-bbf3-4b49-8e5a-0d4df68ea5ec" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/docs/protocol/roles/auxiliary" afterPath="$PROJECT_DIR$/docs/protocol/roles/auxiliary" />
       <change beforePath="$PROJECT_DIR$/docs/protocol/roles/client" afterPath="$PROJECT_DIR$/docs/protocol/roles/client" />
-      <change beforePath="$PROJECT_DIR$/docs/protocol/roles/sequencer" afterPath="$PROJECT_DIR$/docs/protocol/roles/sequencer" />
       <change beforePath="$PROJECT_DIR$/docs/protocol/roles/storage_device" afterPath="$PROJECT_DIR$/docs/protocol/roles/storage_device" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
@@ -26,41 +23,21 @@
   <component name="ExternalProjectsManager" storeExternally="true" />
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="storage_device" pinned="false" current-in-tab="false">
+      <file leaf-file-name="storage_device" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/docs/protocol/roles/storage_device">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="289">
-              <caret line="17" column="23" lean-forward="false" selection-start-line="17" selection-start-column="23" selection-end-line="17" selection-end-column="23" />
+            <state relative-caret-position="221">
+              <caret line="55" column="0" lean-forward="true" selection-start-line="55" selection-start-column="0" selection-end-line="55" selection-end-column="0" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="sequencer" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/docs/protocol/roles/sequencer">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="204">
-              <caret line="12" column="14" lean-forward="true" selection-start-line="12" selection-start-column="14" selection-end-line="12" selection-end-column="14" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="auxiliary" pinned="false" current-in-tab="true">
+      <file leaf-file-name="auxiliary" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/docs/protocol/roles/auxiliary">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="374">
-              <caret line="43" column="60" lean-forward="true" selection-start-line="43" selection-start-column="60" selection-end-line="43" selection-end-column="60" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="client" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/docs/protocol/roles/client">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1411">
-              <caret line="83" column="67" lean-forward="true" selection-start-line="83" selection-start-column="67" selection-end-line="83" selection-end-column="67" />
+            <state relative-caret-position="-952">
+              <caret line="6" column="56" lean-forward="true" selection-start-line="6" selection-start-column="56" selection-end-line="6" selection-end-column="56" />
               <folding />
             </state>
           </provider>
@@ -466,8 +443,8 @@
         <option value="$PROJECT_DIR$/docs/protocol/metadata/projection" />
         <option value="$PROJECT_DIR$/docs/protocol/roles/auxiliary" />
         <option value="$PROJECT_DIR$/docs/protocol/roles/sequencer" />
-        <option value="$PROJECT_DIR$/docs/protocol/roles/client" />
         <option value="$PROJECT_DIR$/docs/protocol/roles/storage_device" />
+        <option value="$PROJECT_DIR$/docs/protocol/roles/client" />
       </list>
     </option>
   </component>
@@ -669,15 +646,16 @@
       <workItem from="1517957972331" duration="9000" />
       <workItem from="1517957993914" duration="271000" />
       <workItem from="1518754872606" duration="12941000" />
-      <workItem from="1519876287287" duration="23286000" />
+      <workItem from="1519876287287" duration="25714000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="36720000" />
+    <option name="totallyTimeSpent" value="39148000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="31" width="1260" height="953" extended-state="0" />
+    <editor active="true" />
     <layout>
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Palette&#9;" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
@@ -687,7 +665,7 @@
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.2359736" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.2359736" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Build" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3286052" sideWeight="0.49362043" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32978722" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Gradle" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -857,22 +835,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/docs/protocol/roles/client">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1411">
-          <caret line="83" column="67" lean-forward="true" selection-start-line="83" selection-start-column="67" selection-end-line="83" selection-end-column="67" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/docs/protocol/roles/storage_device">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="289">
-          <caret line="17" column="23" lean-forward="false" selection-start-line="17" selection-start-column="23" selection-end-line="17" selection-end-column="23" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/docs/protocol/roles/sequencer">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="204">
@@ -881,10 +843,26 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/docs/protocol/roles/client">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="182">
+          <caret line="32" column="34" lean-forward="true" selection-start-line="32" selection-start-column="34" selection-end-line="32" selection-end-column="34" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/docs/protocol/roles/auxiliary">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="374">
-          <caret line="43" column="60" lean-forward="true" selection-start-line="43" selection-start-column="60" selection-end-line="43" selection-end-column="60" />
+        <state relative-caret-position="-952">
+          <caret line="6" column="56" lean-forward="true" selection-start-line="6" selection-start-column="56" selection-end-line="6" selection-end-column="56" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/docs/protocol/roles/storage_device">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="221">
+          <caret line="55" column="0" lean-forward="true" selection-start-line="55" selection-start-column="0" selection-end-line="55" selection-end-column="0" />
           <folding />
         </state>
       </provider>

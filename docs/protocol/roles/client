@@ -29,7 +29,9 @@ Operation updateProj() {
 
 Operation read(offset) {
     while (TRUE) {
+        // Current read from the primary
         serv = p.primaryOf(offset)
+
         send (read: offset, p.epoch) to serv
             on timeout
                 updateProj()
