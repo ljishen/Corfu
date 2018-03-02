@@ -3,8 +3,8 @@
 - HashMap<ulong, Projection> map, initially empty.
 Keep the map from epoch to proj.
 
-- List<Inventory> invs
-A list of available devices associated with free ranges.
+- List<Replica> inventory
+A list of available replica associated with free ranges.
 
 ===================================================================
 Functions
@@ -16,46 +16,124 @@ Operation onDiff(p) {
 
 
 Operation onPublish(new_seq_addr) {
-    Projection p = copy(map.lastValue())
-    p.sequencer = new_seq_addr
-    map.put(map.lastKey() + 1, p)
-    return p.moffset
+    synchronized(map) {
+        Projection p = copy(map.lastValue())
+        p.sequencer = new_seq_addr
+        map.put(map.lastKey() + 1, p)
+        return p.moffset
+    }
 }
 
 
-Operation onReport(offset, replica_idx) {
-    Projection p = copy(map.lastValue())
-    range = p.rangeOf(offset)
+// @param offset:     the faulty offset
+// @param replica_id: the id of the faulty replica
+// @param p:          the projection held by the reporter
+//
+// @return            onDiff(p) if projection updated else NULL
+Operation onReport(offset, replica_id, p) {
+    epoch = map.lastKey()
+
+    Projection np = copy(map.get(epoch))
+    range = np.rangeOf(offset)
+
+    extent = np.extentOf(offset)
+    replica_idx = extent.replicas.indexOf(replica_id)
+
+    // Return if the replica is already been removed
+    if (replica_idx == -1)
+        return onDiff(p)
+
+    extent.replicas.remove(replica_idx)
 
     new_range = copy(range)
 
-    // Slice the projection at the faulty point
-    range.to = offset - 1
+    // Find the maximal number that less than offset
+    // but should be assigned to extents[0], e.g.
+    //
+    // Case 1:
+    // Range [2..9), faulty offset is 6. The slice point should be 5.
+    // 2 5 8           2       5 8
+    // 3 6      -->    3   +   6
+    // 4 7             4       7
+    //
+    // Case 2:
+    // Range [11..19), faulty offset is 13. The slice point should be 11.
+    // 11 14 17           11 14 17
+    // 12 15 18    -->    12 15 18
+    // 13 16              13 16
+    num_extents = len(range.extents)
+    slice = (offset - range.from) / num_extents * num_extents + range.from
 
-    extent = p.extentOf(offset)
-    extent.remove(replica_idx)
+    // The offset could be the first position in any extent (Case 2 above)
+    if (range.from == slice)
+        addReplica(np, offset)
+        return optimisticReturn(epoch, np, p)
 
-    // Add a new range with a free replica
-    new_range.from = offset
-    free_inv = popFreeInv(range / len(range.extents))
-    extent.add()
+
+    // Slice the projection
+    range.to = slice
+
+    // Update the "to" addr
+    for (int i = 0; i < len(range.extents); i++)
+        for (int j = 0; j < len(range.extents[i].replicas); j++)
+            range.extents[i].replicas[j].to = (range.to - range.from) / len(range.extents) +
+                        range.extents[i].replicas[j].from
+
+    // Insert the new_range
+    new_range.from = slice
+    new_range.next = range.next
+    range.next = new_range
+
+    // Provision a free replica to the new_range
+    addReplica(np, offset)
+
+    // Update the "from" addr
+    for (int i = 0; i < len(new_range.extents); i++)
+        for (int j = 0; j < len(new_range.extents[i].replicas); j++)
+            new_range.extents[i].replicas[j].from += (range.to - range.from / len(new_range.extents))
+
+    return optimisticReturn(epoch, np, p)
 }
 
 
-Operation popFreeInv(len) {
-    for (Inventory inv : invs)
-        available_len = inv.to - inv.from
-        if (available_len >= len)
-            if (available_len == len)
-                invs.remove(inv)
-                return inv
+// @param epoch: the last known epoch
+// @param np:    the new projection
+// @param p:     the old projection
+Operation optimisticReturn(epoch, np, op) {
+    synchronized(map) {
+        if (epoch == map.lastKey())
+            // Publish the new projection
+            map.put(epoch + 1, np)
+
+            return onDiff(op)
+        else
+            return NULL
+    }
+}
+
+
+// Add a replica to the extent corresponding to the
+// offset in the projection.
+Operation addReplica(p, offset) {
+    extent = p.extentOf(offset)
+    free_r = takeInventory(extent.replicas[0].to - extent.replicas[0].from)
+    extent.replicas.add(free_r)
+}
+
+
+// Ensure at least one replica is satisfied in the inventory
+Operation takeInventory(len) {
+    for (Replica r : inventory)
+        free_len = r.to - r.from
+        if (free_len >= len)
+            if (free_len == len)
+                inventory.remove(r)
+                return r
             else
-                free_inv = copy(inv)
-                free_inv.to = free_inv.from + len - 1
-                inv.from = inv.from + len
-                return free_inv
-
-
+                free_r = copy(r)
+                free_r.to = free_r.from + len
+                r.from = r.from + len
+                return free_r
 }
 
 ===================================================================

@@ -3,20 +3,19 @@ Data Structure
 ===================================================================
 
 table Extent {
-  from:ulong;
-  to:ulong;
   replicas:[Replica];
 }
 
 table Replica {
-  from:ulong;
-  to:ulong;
+  id:string;
+  from:ulong;      // include
+  to:ulong;        // exclude
   addr:string;     // the network addr of this storage device
 }
 
 table Range {
-  from:ulong;
-  to:ulong;
+  from:ulong;      // include
+  to:ulong;        // exclude
   extents:[Extent];
 }
 
@@ -59,11 +58,11 @@ Operation primaryOf(offset) {
 
 // (Offload) Translate the ESP logical addr (ela)
 // to ESP physical addr (epa).
-Operation parse(offset) {
+Operation parse(offset, replica_idx) {
     range = rangeOf(offset)
     extents = range.extents
     return (offset - range.from) / len(range.extents) +
-                extentOf(offset).from
+                extentOf(offset).replicas[replica_idx].from
 }
 
 ===================================================================
