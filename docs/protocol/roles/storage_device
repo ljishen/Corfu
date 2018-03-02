@@ -10,11 +10,17 @@ The watermark before which no unwritten addresses exist.
 
 ===================================================================
 Functions
+-------------------------------------------------------------------
+
+Interfaces
+
+- updateProj()
+- onRead(offset, epoch)
 ===================================================================
 
 // Call this function when starts up
 Operation updateProj() {
-    send diff(p) to config.auxiliary_addr
+    send (diff: p) to config.auxiliary_addr
         on receive <diff>
             if (diff != NULL)
                 p.apply(diff)

@@ -8,11 +8,19 @@ Used as the starting point when the sequencer is not available.
 
 ===================================================================
 Functions
+-------------------------------------------------------------------
+
+Interfaces
+
+- updateProj()
+- read(offset)
+- append(data)
+- trim(offset, type)
 ===================================================================
 
 // Call this function when starts up
 Operation updateProj() {
-    send diff(p) to config.auxiliary_addr
+    send (diff: p) to config.auxiliary_addr
         on receive <diff>
             if (diff != NULL)
                 p.apply(diff)
@@ -22,7 +30,7 @@ Operation updateProj() {
 Operation read(offset) {
     while (TRUE) {
         serv = p.primaryOf(offset)
-        send read(serv, offset, p.epoch)
+        send (read: offset, p.epoch) to serv
             on timeout
                 updateProj()
             on receive <errno, data>
@@ -44,9 +52,11 @@ Operation append(data) {
         offset = -1
         while (seq_addr != p.sequencer) {
             seq_addr = p.sequencer
-            offset = getToken(seq_addr)
+            send (getToken: ) to seq_addr
                 on timeout
                     updateProj()
+                on receive <tkn>
+                    offset = tkn
         }
 
         if (offset != -1)
@@ -55,14 +65,14 @@ Operation append(data) {
             c_offset = max(p.moffset, c_offset + 1)
 
         serv = p.primaryOf(c_offset)
-        send append(serv, c_offset, data, p.epoch)
+        send (append: c_offset, data, p.epoch) to serv
             on timeout
                 updateProj()
             on receive <errno, data>
                 if (errno == err_sealed)
                     // update local p by applying projection diff
                     p.apply(data)
-                else if (errno == err_deleted or errno == err_written)
+                else if (errno == err_deleted or err_written)
                     // go and retry
                 else if (error == -1)
                     return c_offset
@@ -71,12 +81,12 @@ Operation append(data) {
 
 
 // @param type:
-//   - prefix: trim from the offset all through the head of log.
+//   - prefix: trim from the offset all through to the head of log.
 //   - offset: trim just the offset addr alone.
 Operation trim(offset, type) {
     while (TRUE) {
         serv = p.primaryOf(offset)
-        send trim(serv, offset, type, p.epoch)
+        send (trim: offset, type, p.epoch) to serv
             on timeout
                 updateProj()
             on receive <errno, data>

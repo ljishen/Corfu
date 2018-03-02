@@ -8,12 +8,13 @@ A list of available replica associated with free ranges.
 
 ===================================================================
 Functions
+-------------------------------------------------------------------
+
+Interfaces
+
+- onPublish(new_seq_addr)
+- onReport(oper, offset, replica_id, proj)
 ===================================================================
-
-Operation onDiff(p) {
-    return diff(p, map.lastValue())
-}
-
 
 Operation onPublish(new_seq_addr) {
     synchronized(map) {
@@ -25,25 +26,31 @@ Operation onPublish(new_seq_addr) {
 }
 
 
+// @param oper:       the 'READ' or 'WRITE' operation
 // @param offset:     the faulty offset
 // @param replica_id: the id of the faulty replica
-// @param p:          the projection held by the reporter
+// @param proj:       the projection held by the reporter
 //
-// @return            onDiff(p) if projection updated else NULL
-Operation onReport(offset, replica_id, p) {
+// @return            diff(proj) if projection updated else NULL
+Operation onReport(oper, offset, replica_id, proj) {
     epoch = map.lastKey()
 
-    Projection np = copy(map.get(epoch))
-    range = np.rangeOf(offset)
+    Projection nproj = copy(map.get(epoch))
+    range = nproj.rangeOf(offset)
 
-    extent = np.extentOf(offset)
+    extent = nproj.extentOf(offset)
     replica_idx = extent.replicas.indexOf(replica_id)
 
-    // Return if the replica is already been removed
+    // Return if the faulty replica has already been removed
     if (replica_idx == -1)
-        return onDiff(p)
+        return diff(proj)
 
     extent.replicas.remove(replica_idx)
+
+    // Just remove the faulty replica if in 'READ' operation
+    if (oper == 'READ')
+        return optimisticReturn(epoch, nproj, proj)
+
 
     new_range = copy(range)
 
@@ -66,8 +73,8 @@ Operation onReport(offset, replica_id, p) {
 
     // The offset could be the first position in any extent (Case 2 above)
     if (range.from == slice)
-        addReplica(np, offset)
-        return optimisticReturn(epoch, np, p)
+        addReplica(nproj, offset)
+        return optimisticReturn(epoch, nproj, proj)
 
 
     // Slice the projection
@@ -85,27 +92,32 @@ Operation onReport(offset, replica_id, p) {
     range.next = new_range
 
     // Provision a free replica to the new_range
-    addReplica(np, offset)
+    addReplica(nproj, offset)
 
     // Update the "from" addr
     for (int i = 0; i < len(new_range.extents); i++)
         for (int j = 0; j < len(new_range.extents[i].replicas); j++)
             new_range.extents[i].replicas[j].from += (range.to - range.from / len(new_range.extents))
 
-    return optimisticReturn(epoch, np, p)
+    return optimisticReturn(epoch, nproj, proj)
+}
+
+
+Operation diff(p) {
+    return diff(p, map.lastValue())
 }
 
 
 // @param epoch: the last known epoch
-// @param np:    the new projection
-// @param p:     the old projection
-Operation optimisticReturn(epoch, np, op) {
+// @param nproj: the new projection
+// @param oproj: the old projection
+Operation optimisticReturn(epoch, nproj, oproj) {
     synchronized(map) {
         if (epoch == map.lastKey())
             // Publish the new projection
-            map.put(epoch + 1, np)
+            map.put(epoch + 1, nproj)
 
-            return onDiff(op)
+            return diff(oproj)
         else
             return NULL
     }
