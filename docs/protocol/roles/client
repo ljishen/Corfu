@@ -1,6 +1,6 @@
 -------------------------------------------------------------------
 
-- Projection p, initially empty but not NULL.
+- Projection p
 
 - ulong c_offset, initially -1.
 The maximal known position that has been written.
@@ -12,70 +12,73 @@ Functions
 
 Interfaces
 
-- updateProj()
+- init()
 - read(offset)
 - append(data)
 - trim(offset, type)
 ===================================================================
 
-// Call this function when starts up
-Operation updateProj() {
-    send (diff: p) to config.auxiliary_addr
-        on receive <diff>
-            if (diff != NULL)
-                p.apply(diff)
+// Call this function when starting the client
+Operation init() {
+    send (get: ) to config.auxiliary_addr
+        on receive <proj>
+            p = proj
 }
 
 
 Operation read(offset) {
     while (TRUE) {
-        // Current read from the primary
-        serv = p.primaryOf(offset)
+        <range, idx> = p.isOf(offset)
 
-        send (read: offset, p.epoch) to serv
+        // Read from the primary
+        serv = range.extents[idx].replicas[0]
+        send (read: range, p.epoch, offset) to serv
             on timeout
-                updateProj()
+                update(range)
             on receive <errno, data>
-          if (errno == err_sealed)
-              // update local p by applying projection diff
-              p.apply(data)
-          else if (errno == err_deleted or err_unwritten)
-              return errno
-          else if (error == -1)
-              return data
+                if (errno == err_sealed)
+                    update(range)
+                else if (errno == err_deleted or err_unwritten)
+                    return errno
+                else if (error == -1)
+                    return data
     }
 }
 
 
 Operation append(data) {
-    seq_addr = NULL
+    offset = -1
 
     while (TRUE) {
-        offset = -1
-        while (seq_addr != p.sequencer) {
-            seq_addr = p.sequencer
-            send (getToken: ) to seq_addr
-                on timeout
-                    updateProj()
-                on receive <tkn>
-                    offset = tkn
-        }
+        if (offset == -1)
+            do {
+                send (getToken: ) to p.sequencer
+                    on receive <tkn>
+                        offset = tkn
+                        break
+                    on timeout
+                        continue
+            } while (updateSeq())
 
-        if (offset != -1)
-            c_offset = offset
-        else
-            c_offset = max(p.moffset, c_offset + 1)
+            if (offset != -1)
+                c_offset = offset
+            else
+                c_offset = max(p.moffset, c_offset + 1)
 
-        serv = p.primaryOf(c_offset)
-        send (append: c_offset, data, p.epoch) to serv
+
+        <range, idx> = p.isOf(offset)
+
+        // Write to the primary
+        serv = range.extents[idx].replicas[0]
+        send (append: range, p.epoch, c_offset, data) to serv
             on timeout
-                updateProj()
+                update(range)
             on receive <errno, data>
                 if (errno == err_sealed)
-                    // update local p by applying projection diff
-                    p.apply(data)
+                    update(range)
                 else if (errno == err_deleted or err_written)
-                    // go and retry
+                    // get the next available tkn
+                    offset = -1
                 else if (error == -1)
                     return c_offset
     }
@@ -84,21 +87,43 @@ Operation append(data) {
 
 // @param type:
 //   - prefix: trim from the offset all through to the head of log.
-//   - offset: trim just the offset addr alone.
+//   - offset: trim just the specific offset alone.
 Operation trim(offset, type) {
     while (TRUE) {
-        serv = p.primaryOf(offset)
-        send (trim: offset, type, p.epoch) to serv
+        <range, idx> = p.isOf(offset)
+
+        serv = range.extents[idx].replicas[0]
+        send (trim: range, p.epoch, offset, type) to serv
             on timeout
-                updateProj()
+                update(range)
             on receive <errno, data>
                 if (errno == err_sealed)
-                    // update local p by applying projection diff
-                    p.apply(data)
+                    update(range)
                 else
                     // errno could be err_deleted, err_unwritten or -1
                     return errno
     }
+}
+
+
+// Update the range when the client failed to contact primary
+// or the primary responses with err_sealed.
+Operation update(range) {
+    send (diff: range) to config.auxiliary_addr
+        on receive <diff>
+            if (diff != NULL)
+                p.apply(diff)
+}
+
+
+Operation updateSeq() {
+    send (get: ) to config.auxiliary_addr
+        on receive <proj>
+            if (p.sequencer != proj.sequencer)
+                p.sequencer = proj.sequencer
+                return TRUE
+            else
+                return FALSE
 }
 
 ===================================================================

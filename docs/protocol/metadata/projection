@@ -7,23 +7,26 @@ table Extent {
 }
 
 table Replica {
-  id:string;
-  from:ulong;      // include
-  to:ulong;        // exclude
-  addr:string;     // the network addr of this storage device
+  id:string (required);
+  from:ulong;        // include
+  to:ulong;          // exclude
+  addr:string;       // the network addr of this storage device
 }
 
 table Range {
-  from:ulong;      // include
-  to:ulong;        // exclude
+  from:ulong;                  // include
+  to:ulong;                    // exclude
   extents:[Extent];
+  epoch:ulong = 0 (required);  // starts from 0
 }
 
 table Projection {
   ranges:[Range];
-  epoch: ulong;
-  sequencer:string;  // the network addr of sequencer
-  moffset: ulong;    // the maximal position has been written
+  epoch:ulong = 0 (required);  // the maximal epoch in all ranges
+  sequencer:string;            // the network addr of sequencer
+
+  moffset:ulong;               // the maximal written position in
+                               // the log reported by storage devices
 }
 
 root_type Projection;
@@ -37,32 +40,41 @@ root_type Projection;
 Functions
 ===================================================================
 
+// Apply the diff of a range between current projection and a newer
+// projection to the current projection.
+//
+// Note that these two cases should be considered:
+//
+// Case 1: short range has been merged to long range
+// [52, 71)  ->  [11, 93)
+// In this case, the implementation needs to replace all ranges
+// within [11, 93) with the new range.
+//
+// Case 2: long range is sliced into multiple short ranges
+// [11, 93)  -> [11, 46) + [46, 77) + [77, 93)
+Operation apply(diff)
+
+
 Operation rangeOf(offset)
 
 
 // By default, the mapping function from the ESP logical addr (ela)
 // to the extent within the corresponding range is round-robin.
-Operation extentOf(offset) {
+//
+// @return: the range and the index of extents of the offset
+Operation isOf(offset) {
     range = rangeOf(offset)
     idx = (offset - range.from) % len(range.extents)
-    return range.extents[idx]
-}
-
-
-// The first replica in the extent is the primary
-Operation primaryOf(offset) {
-    extent = extentOf(offset)
-    return extent.replicas[0]
+    return <range, idx>
 }
 
 
 // (Offload) Translate the ESP logical addr (ela)
 // to ESP physical addr (epa).
 Operation parse(offset, replica_idx) {
-    range = rangeOf(offset)
-    extents = range.extents
+    <range, idx> = isOf(offset)
     return (offset - range.from) / len(range.extents) +
-                extentOf(offset).replicas[replica_idx].from
+                range.extents[idx].replicas[replica_idx].from
 }
 
 ===================================================================

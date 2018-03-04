@@ -14,26 +14,17 @@ Functions
 
 Interfaces
 
-- updateProj()
 - onRead(offset, epoch)
+- onAppend(range, epoch, offset, data)
+- onTrim(range, epoch, offset, type)
 ===================================================================
 
-// Call this function when starts up
-Operation updateProj() {
-    send (diff: p) to config.auxiliary_addr
-        on receive <diff>
-            if (diff != NULL)
-                p.apply(diff)
-}
-
-
-Operation onRead(offset, epoch) {
-    while (epoch != p.epoch) {
-        if (epoch < p.epoch)
-            return <err_sealed, diff(p)>
-
-        updateProj()
-    }
+Operation onRead(range, epoch, offset) {
+    l_range = p.rangeOf(offset)
+    if (l_range == NULL or l_range.epoch < range.epoch)
+        replace(l_range, range)
+    else
+        return <err_sealed, NULL>
 
     if (map.contains(offset))
         if (map.get(offset).isDeleted)
@@ -49,13 +40,12 @@ Operation onRead(offset, epoch) {
 }
 
 
-Operation onAppend(offset, data, epoch) {
-    while (epoch != p.epoch) {
-        if (epoch < p.epoch)
-            return <err_sealed, diff(p)>
-
-        updateProj()
-    }
+Operation onAppend(range, epoch, offset, data) {
+    l_range = p.rangeOf(offset)
+    if (l_range == NULL or l_range.epoch < range.epoch)
+        replace(l_range, range)
+    else
+        return <err_sealed, NULL>
 
     if (map.containts(offset))
         if (map.get(offset).isDeleted)
@@ -79,7 +69,7 @@ Operation onAppend(offset, data, epoch) {
 }
 
 
-Operation onTrim(offset, type, epoch) {
+Operation onTrim(range, epoch, offset, type) {
 
 }
 
@@ -90,11 +80,28 @@ Operation ping() {
 }
 
 
-Operation diff(p) {
-    if (p == self.p)
-        return NULL
+// Replace the o_range with the n_range.
+// Note that n_range's epoch is bigger than the o_range's.
+Operation replace(o_range, n_range) {
+    if (o_range != NULL and o_range.epoch > n_range.epoch)
+        throw error
 
-    return diff(p, self.p)
+    if (o_range != NULL)
+        // This is the case where n_range is long and o_range is
+        // short. Since the number of ranges maps to a storage
+        // device is relatively small, even doing full search for
+        // the out-of-date ranges is cheap.
+        if (n_range.to - n_range.from > o_range.to - o.range.from)
+            for (Range r : p.ranges)
+                if (r.from >= n_range.from and r.to <= n_range.to)
+                    p.remove(r)
+        else
+            // This is the case where n_range is short and o_range
+            // is long. We can directly replace the long range
+            // with the new short range.
+            p.remove(o_range)
+
+    p.add(n_range)
 }
 
 ===================================================================

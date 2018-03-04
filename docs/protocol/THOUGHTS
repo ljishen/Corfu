@@ -1,0 +1,4 @@
+Question: Can we use the log to store the projection?
+Ans:      Yes, but the auxiliary must keep the projection of the projection,
+          which doesn't reduce the importance of the auxiliary but just the
+          size of data needed to be maintained by the it.
