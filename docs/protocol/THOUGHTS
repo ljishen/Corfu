@@ -2,3 +2,9 @@ Question: Can we use the log to store the projection?
 Ans:      Yes, but the auxiliary must keep the projection of the projection,
           which doesn't reduce the importance of the auxiliary but just the
           size of data needed to be maintained by the it.
+
+Comment:  For a 1PB cluster, the size of projection is 25GB. Considering each
+          storage device also need to keep several, for example 10 recent
+          projections, the size of projections maintains by each storage
+          device would be 250GB. This amount of data is impractical to keep
+          in the storage device no matter in the DRAM or persistent storage.

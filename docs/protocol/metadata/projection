@@ -8,25 +8,48 @@ table Extent {
 
 table Replica {
   id:string (required);
-  from:ulong;        // include
-  to:ulong;          // exclude
-  addr:string;       // the network addr of this storage device
+
+  // include
+  from:ulong;
+
+  // exclude
+  to:ulong;
+
+  // the network addr of this storage device
+  addr:string;
+
+  // true if the replica is in the cluster
+  enabled:bool = false (required);
 }
 
 table Range {
-  from:ulong;                  // include
-  to:ulong;                    // exclude
+  // include
+  from:ulong;
+
+  // exclude
+  to:ulong;
+
   extents:[Extent];
-  epoch:ulong = 0 (required);  // starts from 0
+
+  // starts from 0
+  epoch:ulong = 0 (required);
+
+  // Optional. Only used in the communication with storage device
+  auxiliary:string;
 }
 
 table Projection {
   ranges:[Range];
-  epoch:ulong = 0 (required);  // the maximal epoch in all ranges
-  sequencer:string;            // the network addr of sequencer
 
-  moffset:ulong;               // the maximal written position in
-                               // the log reported by storage devices
+  // the maximal epoch in all ranges
+  epoch:ulong = 0 (required);
+
+  // the network addr of sequencer
+  sequencer:string;
+
+  // the maximal written position in the log reported by
+  // storage devices
+  moffset:ulong;
 }
 
 root_type Projection;

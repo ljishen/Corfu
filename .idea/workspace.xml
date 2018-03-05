@@ -2,12 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="472aff55-bbf3-4b49-8e5a-0d4df68ea5ec" name="Default" comment="">
-      <change beforePath="" afterPath="$PROJECT_DIR$/docs/protocol/THOUGHTS" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change beforePath="$PROJECT_DIR$/docs/protocol/THOUGHTS" afterPath="$PROJECT_DIR$/docs/protocol/THOUGHTS" />
       <change beforePath="$PROJECT_DIR$/docs/protocol/metadata/projection" afterPath="$PROJECT_DIR$/docs/protocol/metadata/projection" />
       <change beforePath="$PROJECT_DIR$/docs/protocol/roles/auxiliary" afterPath="$PROJECT_DIR$/docs/protocol/roles/auxiliary" />
       <change beforePath="$PROJECT_DIR$/docs/protocol/roles/client" afterPath="$PROJECT_DIR$/docs/protocol/roles/client" />
-      <change beforePath="$PROJECT_DIR$/docs/protocol/roles/sequencer" afterPath="$PROJECT_DIR$/docs/protocol/roles/sequencer" />
       <change beforePath="$PROJECT_DIR$/docs/protocol/roles/storage_device" afterPath="$PROJECT_DIR$/docs/protocol/roles/storage_device" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
@@ -44,21 +43,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="storage_device" pinned="false" current-in-tab="false">
+      <file leaf-file-name="storage_device" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/docs/protocol/roles/storage_device">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1700">
-              <caret line="100" column="40" lean-forward="true" selection-start-line="100" selection-start-column="40" selection-end-line="100" selection-end-column="40" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="auxiliary" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/docs/protocol/roles/auxiliary">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2465">
-              <caret line="145" column="48" lean-forward="true" selection-start-line="145" selection-start-column="48" selection-end-line="145" selection-end-column="48" />
+            <state relative-caret-position="216">
+              <caret line="67" column="37" lean-forward="false" selection-start-line="67" selection-start-column="32" selection-end-line="67" selection-end-column="37" />
               <folding />
             </state>
           </provider>
@@ -67,18 +56,8 @@
       <file leaf-file-name="projection" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/docs/protocol/metadata/projection">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="255">
-              <caret line="19" column="7" lean-forward="false" selection-start-line="19" selection-start-column="2" selection-end-line="19" selection-end-column="7" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="client" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/docs/protocol/roles/client">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="86">
-              <caret line="94" column="16" lean-forward="false" selection-start-line="94" selection-start-column="16" selection-end-line="94" selection-end-column="16" />
+            <state relative-caret-position="165">
+              <caret line="71" column="25" lean-forward="true" selection-start-line="71" selection-start-column="25" selection-end-line="71" selection-end-column="25" />
               <folding />
             </state>
           </provider>
@@ -95,29 +74,9 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>moffset</find>
-      <find>:</find>
-      <find>proj</find>
-      <find>oproj</find>
-      <find>@return</find>
-      <find>primaryOf</find>
-      <find>extents</find>
-      <find>n_proj</find>
-      <find>extentOf(</find>
-      <find>extent</find>
-      <find>idx</find>
-      <find>seq_addr</find>
-      <find>updateSeq</find>
-      <find>init()</find>
-      <find>send (get: ) to config.auxiliary_addr</find>
-      <find>sequencer</find>
-      <find>optimisticPublish</find>
-      <find>optimisticReturn</find>
-      <find>send</find>
       <find>dif</find>
       <find>s_range</find>
       <find>updateProj</find>
-      <find>diff</find>
       <find>rangeOf</find>
       <find>apply</find>
       <find>.sequencer</find>
@@ -125,6 +84,26 @@
       <find>range</find>
       <find>return</find>
       <find>epoch</find>
+      <find>extentsOf</find>
+      <find>extents[idx].replicas[0]</find>
+      <find>else if</find>
+      <find>for (</find>
+      <find>range.extents[idx].</find>
+      <find>) to</find>
+      <find>) to</find>
+      <find>serv</find>
+      <find>isOf</find>
+      <find>diff</find>
+      <find>diff(</find>
+      <find>proj</find>
+      <find>optimisticPublish</find>
+      <find>onDiff</find>
+      <find>auxiliary</find>
+      <find>err_sealed</find>
+      <find>network</find>
+      <find>r</find>
+      <find>data</find>
+      <find>error</find>
     </findStrings>
     <replaceStrings>
       <replace />
@@ -500,12 +479,12 @@
         <option value="$PROJECT_DIR$/settings.gradle" />
         <option value="$PROJECT_DIR$/.idea/.name" />
         <option value="$PROJECT_DIR$/README.md" />
-        <option value="$PROJECT_DIR$/docs/protocol/THOUGHTS" />
         <option value="$PROJECT_DIR$/docs/protocol/roles/sequencer" />
-        <option value="$PROJECT_DIR$/docs/protocol/roles/storage_device" />
+        <option value="$PROJECT_DIR$/docs/protocol/THOUGHTS" />
+        <option value="$PROJECT_DIR$/docs/protocol/roles/auxiliary" />
         <option value="$PROJECT_DIR$/docs/protocol/metadata/projection" />
         <option value="$PROJECT_DIR$/docs/protocol/roles/client" />
-        <option value="$PROJECT_DIR$/docs/protocol/roles/auxiliary" />
+        <option value="$PROJECT_DIR$/docs/protocol/roles/storage_device" />
       </list>
     </option>
   </component>
@@ -730,7 +709,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="68714000" />
+    <option name="totallyTimeSpent" value="88600000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="31" width="1260" height="953" extended-state="0" />
@@ -788,6 +767,10 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="85">
           <caret line="7" column="1" lean-forward="false" selection-start-line="7" selection-start-column="1" selection-end-line="7" selection-end-column="1" />
+          <folding>
+            <element signature="e#118#119#0" expanded="false" />
+            <element signature="e#150#151#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -795,6 +778,11 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="85">
           <caret line="6" column="38" lean-forward="true" selection-start-line="6" selection-start-column="38" selection-end-line="6" selection-end-column="38" />
+          <folding>
+            <element signature="imports" expanded="false" />
+            <element signature="e#164#165#0" expanded="false" />
+            <element signature="e#201#202#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -825,6 +813,10 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="374">
           <caret line="23" column="14" lean-forward="false" selection-start-line="23" selection-start-column="14" selection-end-line="23" selection-end-column="14" />
+          <folding>
+            <element signature="imports" expanded="false" />
+            <element signature="e#172#199#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -840,6 +832,10 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="119">
           <caret line="7" column="1" lean-forward="false" selection-start-line="7" selection-start-column="1" selection-end-line="7" selection-end-column="1" />
+          <folding>
+            <element signature="e#118#119#0" expanded="false" />
+            <element signature="e#150#151#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -854,6 +850,11 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="102">
           <caret line="6" column="38" lean-forward="false" selection-start-line="6" selection-start-column="38" selection-end-line="6" selection-end-column="38" />
+          <folding>
+            <element signature="imports" expanded="false" />
+            <element signature="e#164#165#0" expanded="false" />
+            <element signature="e#201#202#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -1030,13 +1031,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/edu/ucsc/soe/sys/Projection.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="119">
-          <caret line="10" column="19" lean-forward="false" selection-start-line="10" selection-start-column="19" selection-end-line="10" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/edu/ucsc/soe/sys/Auxiliary.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="102">
@@ -1112,42 +1106,50 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/edu/ucsc/soe/sys/Projection.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="442">
+          <caret line="29" column="120" lean-forward="false" selection-start-line="29" selection-start-column="120" selection-end-line="29" selection-end-column="120" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/docs/protocol/THOUGHTS">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="51">
-          <caret line="3" column="57" lean-forward="false" selection-start-line="3" selection-start-column="57" selection-end-line="3" selection-end-column="57" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/docs/protocol/roles/client">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="86">
-          <caret line="94" column="16" lean-forward="false" selection-start-line="94" selection-start-column="16" selection-end-line="94" selection-end-column="16" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/docs/protocol/metadata/projection">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
-          <caret line="19" column="7" lean-forward="false" selection-start-line="19" selection-start-column="2" selection-end-line="19" selection-end-column="7" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/docs/protocol/roles/storage_device">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1700">
-          <caret line="100" column="40" lean-forward="true" selection-start-line="100" selection-start-column="40" selection-end-line="100" selection-end-column="40" />
+        <state relative-caret-position="153">
+          <caret line="9" column="76" lean-forward="false" selection-start-line="9" selection-start-column="76" selection-end-line="9" selection-end-column="76" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/docs/protocol/roles/auxiliary">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2465">
-          <caret line="145" column="48" lean-forward="true" selection-start-line="145" selection-start-column="48" selection-end-line="145" selection-end-column="48" />
+        <state relative-caret-position="267">
+          <caret line="62" column="38" lean-forward="true" selection-start-line="62" selection-start-column="38" selection-end-line="62" selection-end-column="38" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/docs/protocol/metadata/projection">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="165">
+          <caret line="71" column="25" lean-forward="true" selection-start-line="71" selection-start-column="25" selection-end-line="71" selection-end-column="25" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/docs/protocol/roles/client">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="539">
+          <caret line="101" column="51" lean-forward="false" selection-start-line="101" selection-start-column="51" selection-end-line="101" selection-end-column="51" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/docs/protocol/roles/storage_device">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="216">
+          <caret line="67" column="37" lean-forward="false" selection-start-line="67" selection-start-column="32" selection-end-line="67" selection-end-column="37" />
           <folding />
         </state>
       </provider>

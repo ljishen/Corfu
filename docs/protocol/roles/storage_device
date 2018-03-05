@@ -1,5 +1,9 @@
 -------------------------------------------------------------------
 
+- Config config
+The configuration that stores the auxiliary_addr. This information
+is updated by the client or other storage device.
+
 - Projection p, initially empty but not NULL.
 
 - HashMap<ulong, <ulong, bool>> map
@@ -20,11 +24,9 @@ Interfaces
 ===================================================================
 
 Operation onRead(range, epoch, offset) {
-    l_range = p.rangeOf(offset)
-    if (l_range == NULL or l_range.epoch < range.epoch)
-        replace(l_range, range)
-    else
-        return <err_sealed, NULL>
+    errno = check(range, offset)
+    if (errno != -1)
+        return <errno, NULL>
 
     if (map.contains(offset))
         if (map.get(offset).isDeleted)
@@ -40,36 +42,69 @@ Operation onRead(range, epoch, offset) {
 }
 
 
-Operation onAppend(range, epoch, offset, data) {
-    l_range = p.rangeOf(offset)
-    if (l_range == NULL or l_range.epoch < range.epoch)
-        replace(l_range, range)
-    else
-        return <err_sealed, NULL>
+Operation onAppend(range, epoch, offset, data, replica_idx) {
+    errno = check(range, offset)
+    if (errno != -1)
+        return <errno>
 
-    if (map.containts(offset))
-        if (map.get(offset).isDeleted)
-            return <err_deleted, NULL>
-        else
-            return <err_written, NULL>
-    else if (offset <= end_of_cleaned)
-          return <err_deleted, NULL>
+    // Only check the validity on the primary
+    if (replica_idx == 0)
+        if (map.containts(offset))
+            if (map.get(offset).isDeleted)
+                return <err_deleted>
+            else
+                return <err_written>
+        else if (offset <= end_of_cleaned)
+              return <err_deleted>
 
-    // Hold place for this offset
-    map.put(offset, NULL)
 
-    extents = p.extentsOf(offset)
-    if (extents[0] == host_network_addr)
-        for (extents[1:])
-            async send onAppend(offset, data, epoch)
-            on timeout
-                report
+    <range, idx> = p.isOf(offset)
 
-    addr = parse(offset)
+    // Replica the append request if I'm the primary
+    if (replica_idx == 0)
+        // Hold place for this offset to avoid taking by other clients
+        map.put(offset, NULL)
+
+        for (int i = 1; i < len(range.extents[idx].replicas); i++)
+            r = range.extents[idx].replicas[i]
+            async send (append: range, epoch, offset, data, i) to r.addr
+                on timeout
+                    send (report: 'WRITE', offset, r.id) to config.auxiliary_addr
+
+                    // Remove the placeholder so that client can try again
+                    map.remove(offset)
+
+                    return <err_sealed>
+                on receive <errno>
+                    if (errno != -1)
+                        // Remove the placeholder so that client can try again
+                        map.remove(offset)
+
+                        return <errno>
+
+    addr = p.parse(offset, replica_idx)
+    write(data, addr)
+    map.put(offset, addr)
+
+    return -1
 }
 
 
-Operation onTrim(range, epoch, offset, type) {
+Operation onTrim(range, epoch, offset, type, replica_idx) {
+    errno = check(range, offset)
+    if (errno != -1)
+        return <errno>
+
+    // Only check the validity on the primary
+    if (replica_idx == 0)
+        if (!map.containts(offset))
+            if (offset <= end_of_cleaned)
+                return <err_deleted>
+            else
+                return <err_unwritten>
+        else if (map.get(offset).isDeleted)
+            return <err_deleted>
+
 
 }
 
@@ -77,6 +112,34 @@ Operation onTrim(range, epoch, offset, type) {
 // (Offload)
 Operation ping() {
 
+}
+
+
+// This function performs the checking for the range of the offset.
+// There are only two cases for such range from all storage device:
+//
+// Case 1:
+// All the ranges have the same epoch.
+// - If it is the latest epoch, then everything is good.
+// - If they share an old epoch, the range also much be the same
+//   since the same offset should be mapped to the same range in
+//   the same epoch. Because the evolution of projection will
+//   always preserve all written positions, it is safe to write
+//   under an old epoch.
+//
+// Case 2:
+// The ranges do not agree on one epoch.
+// - If the primary has a range that is as new as other replicas,
+//   then eventually they will update to the same range.
+// - If the primary has a range that is older than some replicas,
+//   the primary will return <err_sealed> to the client.
+Operation check(range, offset) {
+    l_range = p.rangeOf(offset)
+    if (l_range == NULL or l_range.epoch < range.epoch)
+        replace(l_range, range)
+        return -1
+    else if (l_range.epoch > range.epoch)
+        return <err_sealed>
 }
 
 
@@ -93,7 +156,7 @@ Operation replace(o_range, n_range) {
         // the out-of-date ranges is cheap.
         if (n_range.to - n_range.from > o_range.to - o.range.from)
             for (Range r : p.ranges)
-                if (r.from >= n_range.from and r.to <= n_range.to)
+                if (n_range.from <= r.from and n_range.to >= r.to)
                     p.remove(r)
         else
             // This is the case where n_range is short and o_range
@@ -101,6 +164,7 @@ Operation replace(o_range, n_range) {
             // with the new short range.
             p.remove(o_range)
 
+    config.auxiliary_addr = n_range.auxiliary
     p.add(n_range)
 }
 

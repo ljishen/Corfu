@@ -15,7 +15,7 @@ Interfaces
 - onGet()
 - onDiff(o_range)
 - onPublish(new_seq_addr)
-- onReport(oper, offset, replica_id, proj)
+- onReport(oper, offset, replica_id)
 ===================================================================
 
 Operation onGet() {
@@ -56,12 +56,7 @@ Operation onPublish(new_seq_addr) {
 // @param oper:       the 'READ' or 'WRITE' operation
 // @param offset:     the faulty offset
 // @param replica_id: the id of the faulty replica
-// @param proj:       the projection held by the reporter
-//
-// @return:           return diff(proj, map.lastValue())
-//                    if replica of replica_id has been removed
-//                    or a new projection is published, else NULL
-Operation onReport(oper, offset, replica_id, proj) {
+Operation onReport(oper, offset, replica_id) {
     epoch = map.lastKey()
 
     Projection n_proj = copy(map.get(epoch))
@@ -69,9 +64,9 @@ Operation onReport(oper, offset, replica_id, proj) {
 
     replica_idx = range.extents[idx].replicas.indexOf(replica_id)
 
-    // Return if the faulty replica has already been removed
+    // Return if the faulty replica has already been removed.
     if (replica_idx == -1)
-        return diff(proj, map.lastValue())
+        return
 
     range.extents[idx].replicas.remove(replica_idx)
 
@@ -80,7 +75,8 @@ Operation onReport(oper, offset, replica_id, proj) {
 
     // Just remove the faulty replica if in 'READ' operation
     if (oper == 'READ')
-        return optimisticPublish(epoch, n_proj, proj)
+        optimisticPublish(epoch, n_proj)
+        return
 
 
     new_range = copy(range)
@@ -105,7 +101,8 @@ Operation onReport(oper, offset, replica_id, proj) {
     // The offset could be the first position in any extent (Case 2 above)
     if (range.from == slice)
         addReplica(n_proj, offset)
-        return optimisticPublish(epoch, n_proj, proj)
+        optimisticPublish(epoch, n_proj)
+        return
 
 
     // Slice the projection
@@ -130,22 +127,17 @@ Operation onReport(oper, offset, replica_id, proj) {
         for (int j = 0; j < len(new_range.extents[i].replicas); j++)
             new_range.extents[i].replicas[j].from += (range.to - range.from / len(new_range.extents))
 
-    return optimisticPublish(epoch, n_proj, proj)
+    optimisticPublish(epoch, n_proj)
 }
 
 
-// @param epoch: the last known epoch
+// @param epoch:  the last known epoch
 // @param n_proj: the new projection
-// @param o_proj: the old projection
-Operation optimisticPublish(epoch, n_proj, o_proj) {
+Operation optimisticPublish(epoch, n_proj) {
     synchronized(map) {
         if (epoch == map.lastKey())
             // Publish the new projection
             map.put(epoch + 1, n_proj)
-
-            return diff(o_proj, map.lastValue())
-        else
-            return NULL
     }
 }
 
@@ -156,6 +148,7 @@ Operation addReplica(p, offset) {
     <range, idx> = p.isOf(offset)
     extent = range.extents[idx]
     free_r = takeInventory(extent.replicas[0].to - extent.replicas[0].from)
+    free_r.enabled = TRUE
     extent.replicas.add(free_r)
 }
 
