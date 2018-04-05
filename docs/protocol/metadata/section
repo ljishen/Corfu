@@ -1,0 +1,29 @@
+===================================================================
+Functions
+===================================================================
+
+Operation rangeOf(offset)
+
+
+// By default, the mapping function from the ECP logical addr (ela)
+// to the extents inside the corresponding range is round-robin.
+//
+// @return: the range and the index of extents of the offset
+Operation isOf(offset) {
+    // Since the section has found, the range could not be NULL
+    range = rangeOf(offset)
+
+    idx = (offset - range.from) % len(range.extents)
+    return <range, idx>
+}
+
+
+Operation devices() {
+    Set<String> addrs = emptySet()
+    for (Range rg : ranges)
+        for (Extent et : rg.extents)
+            for (Replica rc : et.replicas)
+                addrs.add(rc.addr)
+
+    return addrs
+}

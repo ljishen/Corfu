@@ -1,7 +1,7 @@
 -------------------------------------------------------------------
 
 - Config config
-The configuration that stores the auxiliary_addr
+The configuration that stores the sequencer_addr and auxiliary_addr
 
 - Projection p
 
@@ -32,16 +32,27 @@ Operation init() {
 Operation read(offset) {
     while (TRUE) {
         <range, idx> = p.isOf(offset)
+        if (range == NULL)
+            send (get: offset) to config.auxiliary_addr
+                on timeout
+                    throw error
+                on receive <n_range>
+                    p.add(n_range)
+                    continue
+
         range.auxiliary = config.auxiliary_addr
 
         // Read from the primary
         r = range.extents[idx].replicas[0]
-        send (read: range, p.epoch, offset) to r.addr
+        send (read: offset, range) to r.addr
             on timeout
                 update(range)
             on receive <errno, data>
                 if (errno == err_sealed)
-                    update(range)
+                    if (data == NULL)
+                        update(range)
+                    else
+                        p.apply(data)
                 else if (errno == err_deleted or err_unwritten)
                     return errno
                 else if (errno == -1)
@@ -119,6 +130,8 @@ Operation update(range) {
         on receive <diff>
             if (diff != NULL)
                 p.apply(diff)
+        on timeout
+            throw error
 }
 
 

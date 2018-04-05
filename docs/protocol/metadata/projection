@@ -2,53 +2,52 @@
 Data Structure
 ===================================================================
 
+table Replica {
+  // Include
+  from:ulong;
+
+  // Exclude
+  to:ulong;
+
+  // The network addr of this storage device.
+  addr:string;
+}
+
 table Extent {
   replicas:[Replica];
 }
 
-table Replica {
-  id:string (required);
-
-  // include
-  from:ulong;
-
-  // exclude
-  to:ulong;
-
-  // the network addr of this storage device
-  addr:string;
-
-  // true if the replica is in the cluster
-  enabled:bool = false (required);
-}
-
 table Range {
-  // include
+  // Include
   from:ulong;
 
-  // exclude
+  // Exclude
   to:ulong;
 
   extents:[Extent];
+}
 
-  // starts from 0
+table Section {
+  // Each section has an independent epoch which starts from 0
   epoch:ulong = 0 (required);
 
-  // Optional. Only used in the communication with storage device
-  auxiliary:string;
+  // The least "from" in all ranges of this section.
+  // This field is just used for fast indexing.
+  from:ulong;
+
+  // The greatest "to" in all ranges of this section.
+  // This field is just used for fast indexing.
+  to:ulong;
+
+  // Initially, each section only has one range.
+  ranges: [Range];
 }
 
 table Projection {
-  ranges:[Range];
+  sections:[Section];
 
-  // the maximal epoch in all ranges
-  epoch:ulong = 0 (required);
-
-  // the network addr of sequencer
-  sequencer:string;
-
-  // the maximal written position in the log reported by
-  // storage devices
+  // The maximal written position in the log reported by
+  // storage devices.
   moffset:ulong;
 }
 
@@ -63,32 +62,14 @@ root_type Projection;
 Functions
 ===================================================================
 
-// Apply the diff of a range between current projection and a newer
-// projection to the current projection.
-//
-// Note that these two cases should be considered:
-//
-// Case 1: short range has been merged to long range
-// [52, 71)  ->  [11, 93)
-// In this case, the implementation needs to replace all ranges
-// within [11, 93) with the new range.
-//
-// Case 2: long range is sliced into multiple short ranges
-// [11, 93)  -> [11, 46) + [46, 77) + [77, 93)
-Operation apply(diff)
+// @return: NULL or the associated section
+Operation sectionOf(offset)
 
 
-Operation rangeOf(offset)
-
-
-// By default, the mapping function from the ESP logical addr (ela)
-// to the extent within the corresponding range is round-robin.
-//
-// @return: the range and the index of extents of the offset
-Operation isOf(offset) {
-    range = rangeOf(offset)
-    idx = (offset - range.from) % len(range.extents)
-    return <range, idx>
+Operation replace(o_section, n_section) {
+    if (o_section.epoch < n_section.epoch)
+        remove(o_section)
+        insert(n_section)
 }
 
 

@@ -1,16 +1,16 @@
 -------------------------------------------------------------------
 
-- Config config
-The configuration that stores the auxiliary_addr. This information
-is updated by the client or other storage device.
-
 - Projection p, initially empty but not NULL.
 
 - HashMap<ulong, <ulong, bool>> map
-Keep the map from ela to <epa, isDeleted>.
+  Keep the map from ela to <epa, isDeleted>.
+
+- String addr_auxiliary, initially NULL
+  The address of auxiliary which takes from the request from
+  clients or other replicas when it is NULL.
 
 - ulong end_of_cleaned, initially -1.
-The watermark before which no unwritten addresses exist.
+  The watermark before which no unwritten addresses exist.
 
 ===================================================================
 Functions
@@ -18,15 +18,54 @@ Functions
 
 Interfaces
 
-- onRead(offset, epoch)
-- onAppend(range, epoch, offset, data)
+- onRead(offset, section)
+- onWrite(offset, section, data, replica_idx, addr_auxiliary)
 - onTrim(range, epoch, offset, type)
 ===================================================================
 
-Operation onRead(range, epoch, offset) {
-    errno = check(range, offset)
-    if (errno != -1)
-        return <errno, NULL>
+// @param offset         : The offset from which to read.
+// @param section        : The associated section of the offset
+//                         from client.
+Operation onRead(offset, section) {
+    l_section = p.sectionOf(offset)
+
+    // We have an assumption that once the offset is even written,
+    // the associated section exists in the projection of the
+    // relevant storage devices.
+
+    // A new storage device which is mapped to another section
+    // takes over the old network addr.
+    if (l_section == NULL)
+        return <err_sealed, NULL>
+
+    // A new storage device which took over the old network addr
+    // now is assign to a section including the offset.
+    if (l_section.epoch > section.epoch)
+        return <err_sealed, diff(section, l_section)>
+
+    // Now the client has the associated section no older than
+    // the one held by the storage device.
+
+    // For the epoch of the associated section of this offset:
+    //
+    // Case 1:
+    //   The epoch of the section in the request is no less
+    //   than the epoch of the section used during the write to
+    //   this offset.
+    //     The current read is valid because of the linearizable
+    //     consistency property of the write operation.
+    //
+    // Case 2:
+    //   The epoch of the section in the request is less than the
+    //   epoch of the section used during the write to this offset.
+    //     This case is impossible. Because the write to the offset
+    //     will ensure the epoch of the associated section in all
+    //     replicas within this section is at least the epoch of
+    //     associated section in the write request. Therefore, the
+    //     request should be filtered by the previous logic.
+
+    if (l_section.epoch < section.epoch)
+        broadcastReplace(l_section, section)
 
     if (map.contains(offset))
         if (map.get(offset).isDeleted)
@@ -42,10 +81,54 @@ Operation onRead(range, epoch, offset) {
 }
 
 
-Operation onAppend(range, epoch, offset, data, replica_idx) {
-    errno = check(range, offset)
-    if (errno != -1)
-        return <errno>
+// 1. The storage devices do not need to preload all relevant
+//    sections.
+// 2. The storage device takes the section from the request if it
+//    does not have one associated with the offset in the request.
+//    In this case, this section could be NOT the latest, but since
+//    the write operation is linearizable consistency, meaning any
+//    successful writes under an old section (all replicas should
+//    agree on this section) are preserved and visible to all
+//    subsequent reads under later version of the associated
+//    section.
+// 3. Since the storage devices drive the migration of sections,
+//    any one which has old section will eventually upgrade to the
+//    latest ones.
+// 4. If the storage device has the associated section newer than
+//    the section in request, return its own section.
+// 5. If the storage device has the associated section older than
+/     the section in request, broadcast the replacement of its own
+//    old section with the new section among the replicas within
+//    the section BEFORE continuing the write. The consistency of
+//    the associated section among the replicas within the section
+//    is important because a client could use an old version of the
+//    associated section to read data of an offset from a wrong
+//    storage device in the latest associated section. For example,
+//    a client could try to use an old version of section to read
+//    data of the offset from F', but the data is written under a
+//    newer version of section to F, where F' and F is in the same
+//    section (hence F' and F both have the section in their
+//    projection).
+//
+// @param offset         : The offset to which the data is written.
+// @param section        : The associated section of the offset
+//                         from client.
+// @param data           : The data to write.
+// @param replica_idx    : The index of the replica in the relevant
+//                         extent.
+// @param addr_auxiliary : The network address of the auxiliary.
+Operation onWrite(offset, section, data, replica_idx,
+                  addr_auxiliary) {
+    section = p.sectionOf(offset)
+    if (section == NULL)
+        p.insert(section)
+
+    <l_range, idx> = p.isOf(offset)
+    if (l_range == NULL)
+        p.add(range)
+    else if (l_range.epoch > range.epoch or
+             !l_range.extents[idx].replicas[replica_idx].enabled)
+        return <err_sealed, l_range>
 
     // Only check the validity on the primary
     if (replica_idx == 0)
@@ -91,7 +174,7 @@ Operation onAppend(range, epoch, offset, data, replica_idx) {
 
 
 Operation onTrim(range, epoch, offset, type, replica_idx) {
-    errno = check(range, offset)
+    errno = check(range, offset, replica_idx)
     if (errno != -1)
         return <errno>
 
@@ -124,8 +207,8 @@ Operation ping() {
 // - If they share an old epoch, the range also much be the same
 //   since the same offset should be mapped to the same range in
 //   the same epoch. Because the evolution of projection will
-//   always preserve all written positions, it is safe to write
-//   under an old epoch.
+//   always preserve all written positions, it is safe to read
+//   or write under an old epoch.
 //
 // Case 2:
 // The ranges do not agree on one epoch.
@@ -133,39 +216,32 @@ Operation ping() {
 //   then eventually they will update to the same range.
 // - If the primary has a range that is older than some replicas,
 //   the primary will return <err_sealed> to the client.
-Operation check(range, offset) {
-    l_range = p.rangeOf(offset)
+Operation check(range, offset, replica_idx) {
+    <l_range, idx> = p.isOf(offset)
     if (l_range == NULL or l_range.epoch < range.epoch)
         replace(l_range, range)
         return -1
     else if (l_range.epoch > range.epoch)
         return <err_sealed>
+
+    if (!l_range.extents[idx].replicas[replica_idx].enabled)
+        return <err_sealed>
 }
 
 
-// Replace the o_range with the n_range.
-// Note that n_range's epoch is bigger than the o_range's.
-Operation replace(o_range, n_range) {
-    if (o_range != NULL and o_range.epoch > n_range.epoch)
-        throw error
+// Replace the old section with the new section.
+//
+// @param o_section: The old section.
+// @param n_section: The new seciton.
+Operation onReplace(o_section, n_section) {
+    p.replace(o_section, n_section)
+}
 
-    if (o_range != NULL)
-        // This is the case where n_range is long and o_range is
-        // short. Since the number of ranges maps to a storage
-        // device is relatively small, even doing full search for
-        // the out-of-date ranges is cheap.
-        if (n_range.to - n_range.from > o_range.to - o.range.from)
-            for (Range r : p.ranges)
-                if (n_range.from <= r.from and n_range.to >= r.to)
-                    p.remove(r)
-        else
-            // This is the case where n_range is short and o_range
-            // is long. We can directly replace the long range
-            // with the new short range.
-            p.remove(o_range)
 
-    config.auxiliary_addr = n_range.auxiliary
-    p.add(n_range)
+Operation broadcastReplace(o_section, n_section) {
+    Set<String> addrs = n_section.devices()
+    for (String addr : addrs)
+        async send (replace: o_section, n_section) to addr
 }
 
 ===================================================================

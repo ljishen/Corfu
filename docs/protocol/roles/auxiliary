@@ -22,6 +22,10 @@ Operation onGet() {
     return map.lastValue()
 }
 
+Operation onGet(offset) {
+    return map.lastValue().isOf(offset)
+}
+
 
 // @param o_range: the range held by the client
 Operation onDiff(o_range) {
@@ -56,6 +60,8 @@ Operation onPublish(new_seq_addr) {
 // @param oper:       the 'READ' or 'WRITE' operation
 // @param offset:     the faulty offset
 // @param replica_id: the id of the faulty replica
+// @return            this function does not return anything to
+//                    the reporter
 Operation onReport(oper, offset, replica_id) {
     epoch = map.lastKey()
 
@@ -81,7 +87,7 @@ Operation onReport(oper, offset, replica_id) {
 
     new_range = copy(range)
 
-    // Find the maximal number that less than offset
+    // Find the maximal number no greater than the offset
     // and should be assigned to extents[0], e.g.
     //
     // Case 1:
